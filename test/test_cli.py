@@ -274,7 +274,7 @@ def test_verify_attestation_command(caplog: pytest.LogCaptureFixture) -> None:
             ]
         )
     assert (
-        "Verification failed: failed to build chain: unable to get local issuer certificate"
+        "Verification failed: failed to build timestamp certificate chain"
         in caplog.text
     )
     assert "OK:" not in caplog.text
@@ -496,7 +496,7 @@ def test_verify_pypi_command_env_fail(caplog: pytest.LogCaptureFixture) -> None:
             ]
         )
     assert (
-        "Verification failed: failed to build chain: unable to get local issuer certificate"
+        "Verification failed: failed to build timestamp certificate chain"
         in caplog.text
     )
     assert "OK:" not in caplog.text

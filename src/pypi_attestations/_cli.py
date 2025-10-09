@@ -21,8 +21,7 @@ from packaging.utils import (
 )
 from pydantic import ValidationError
 from rfc3986 import exceptions, uri_reference, validators
-from sigstore._internal.trust import ClientTrustConfig
-from sigstore.models import Bundle, InvalidBundle
+from sigstore.models import Bundle, ClientTrustConfig, InvalidBundle
 from sigstore.oidc import IdentityError, IdentityToken, Issuer
 from sigstore.sign import SigningContext
 from sigstore.verify import policy
@@ -429,6 +428,8 @@ def _sign(args: argparse.Namespace) -> None:
         _die(f"Failed to detect identity: {identity_error}")
 
     trust_config = ClientTrustConfig.staging() if args.staging else ClientTrustConfig.production()
+    # Make sure we use rekor v1 until attestations are compatible with v2
+    trust_config.force_tlog_version = 1
 
     signing_ctx = SigningContext.from_trust_config(trust_config)
 
