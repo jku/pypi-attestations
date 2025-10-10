@@ -70,8 +70,6 @@ class TestAttestation:
     @online
     def test_roundtrip(self, id_token: IdentityToken) -> None:
         trust_config = ClientTrustConfig.staging()
-        # Make sure we use rekor v1 until attestations are compatible with v2
-        trust_config.force_tlog_version = 1
         sign_ctx = SigningContext.from_trust_config(trust_config)
 
         with sign_ctx.signer(id_token) as signer:
@@ -107,8 +105,6 @@ class TestAttestation:
         monkeypatch.setattr(IdentityToken, "in_validity_period", in_validity_period)
 
         trust_config = ClientTrustConfig.staging()
-        # Make sure we use rekor v1 until attestations are compatible with v2
-        trust_config.force_tlog_version = 1
         sign_ctx = SigningContext.from_trust_config(trust_config)
 
         with sign_ctx.signer(id_token, cache=False) as signer:
@@ -128,8 +124,6 @@ class TestAttestation:
         monkeypatch.setattr(sigstore.sign.Signer, "sign_dsse", get_bundle)
 
         trust_config = ClientTrustConfig.staging()
-        # Make sure we use rekor v1 until attestations are compatible with v2
-        trust_config.force_tlog_version = 1
         sign_ctx = SigningContext.from_trust_config(trust_config)
 
         with pytest.raises(impl.AttestationError):
