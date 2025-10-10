@@ -34,16 +34,18 @@ from pathlib import Path
 
 from pypi_attestations import Attestation, Distribution
 from sigstore.oidc import Issuer
+from sigstore.models import ClientTrustConfig
 from sigstore.sign import SigningContext
 from sigstore.verify import Verifier, policy
 
 dist = Distribution.from_file(Path("test_package-0.0.1-py3-none-any.whl"))
 
 # Sign a Python artifact
-issuer = Issuer.production()
-identity_token = issuer.identity_token()
-signing_ctx = SigningContext.production()
-with signing_ctx.signer(identity_token, cache=True) as signer:
+trust_config = ClientTrustConfig.production()
+issuer: Issuer = Issuer(trust_config.signing_config.get_oidc_url())
+signing_ctx = SigningContext.from_trust_config(trust_config)
+
+with signing_ctx.signer(issuer.identity_token(), cache=True) as signer:
     attestation = Attestation.sign(signer, dist)
 
 print(attestation.model_dump_json())
