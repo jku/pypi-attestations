@@ -355,7 +355,7 @@ class Attestation(BaseModel):
             raise ConversionError("invalid transparency log entry") from err
 
         timestamps = [
-            decode_timestamp_response(base64.b64encode(t))
+            decode_timestamp_response(base64.b64decode(t))
             for t in self.verification_material.timestamps
         ]
 

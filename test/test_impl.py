@@ -35,6 +35,7 @@ dist_path = _ASSETS / "rfc8785-0.1.2-py3-none-any.whl"
 dist = impl.Distribution.from_file(dist_path)
 dist_bundle_path = _ASSETS / "rfc8785-0.1.2-py3-none-any.whl.sigstore"
 dist_attestation_path = _ASSETS / "rfc8785-0.1.2-py3-none-any.whl.attestation"
+pypi_attestations_dist = impl.Distribution.from_file(_ASSETS / "pypi_attestations-0.0.19.tar.gz")
 pypi_attestations_attestation = _ASSETS / "pypi_attestations-0.0.19.tar.gz.publish.attestation"
 
 # produced by actions/attest@v1
@@ -45,6 +46,11 @@ gh_signed_dist_bundle_path = _ASSETS / "pypi_attestation_models-0.0.4a2.tar.gz.s
 gl_signed_dist_path = _ASSETS / "gitlab_oidc_project-0.0.3.tar.gz"
 gl_signed_dist = impl.Distribution.from_file(gl_signed_dist_path)
 gl_attestation_path = _ASSETS / "gitlab_oidc_project-0.0.3.tar.gz.publish.attestation"
+
+# contains timestamp but still rekor v1 entry from production
+attestation_with_ts = Path(str(pypi_attestations_attestation) + ".with_timestamp")
+# contains timestamp and rekorv2 entry from staging
+attestation_with_rekor2 = Path(str(pypi_attestations_attestation) + ".with_rekor2_timestamp")
 
 
 class TestDistribution:
@@ -201,6 +207,46 @@ class TestAttestation:
 
         attestation = impl.Attestation.model_validate_json(dist_attestation_path.read_bytes())
         predicate_type, predicate = attestation.verify(pol, dist, staging=True, offline=True)
+
+        assert attestation.statement["_type"] == "https://in-toto.io/Statement/v1"
+        assert (
+            predicate_type
+            == attestation.statement["predicateType"]
+            == "https://docs.pypi.org/attestations/publish/v1"
+        )
+        assert predicate is None and attestation.statement["predicate"] is None
+
+        # convert the attestation to a bundle and verify it that way too
+        bundle = attestation.to_bundle()
+        Verifier.staging(offline=True).verify_dsse(bundle, policy.UnsafeNoOp())
+
+    def test_verify_with_timestamp(self) -> None:
+        # Our checked-in asset has this identity.
+        pol = policy.Identity(identity="jku@goto.fi", issuer="https://github.com/login/oauth")
+
+        attestation = impl.Attestation.model_validate_json(attestation_with_ts.read_bytes())
+        predicate_type, predicate = attestation.verify(pol, pypi_attestations_dist, offline=True)
+
+        assert attestation.statement["_type"] == "https://in-toto.io/Statement/v1"
+        assert (
+            predicate_type
+            == attestation.statement["predicateType"]
+            == "https://docs.pypi.org/attestations/publish/v1"
+        )
+        assert predicate is None and attestation.statement["predicate"] is None
+
+        # convert the attestation to a bundle and verify it that way too
+        bundle = attestation.to_bundle()
+        Verifier.production(offline=True).verify_dsse(bundle, policy.UnsafeNoOp())
+
+    def test_verify_with_timestamp_and_rekor2_entry(self) -> None:
+        # Our checked-in asset has this identity.
+        pol = policy.Identity(identity="jku@goto.fi", issuer="https://github.com/login/oauth")
+
+        attestation = impl.Attestation.model_validate_json(attestation_with_rekor2.read_bytes())
+        predicate_type, predicate = attestation.verify(
+            pol, pypi_attestations_dist, staging=True, offline=True
+        )
 
         assert attestation.statement["_type"] == "https://in-toto.io/Statement/v1"
         assert (
