@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import logging
 import typing
@@ -20,6 +21,7 @@ from packaging.utils import (
     parse_wheel_filename,
 )
 from pydantic import ValidationError
+from rfc3161_client import decode_timestamp_response
 from rfc3986 import exceptions, uri_reference, validators
 from sigstore.models import Bundle, ClientTrustConfig, InvalidBundle
 from sigstore.oidc import IdentityError, IdentityToken, Issuer
@@ -510,6 +512,14 @@ def _inspect(args: argparse.Namespace) -> None:
         )
         for idx, entry in enumerate(verification_material.transparency_entries):
             _logger.info(f"\tLog Index: {entry['logIndex']}")
+            kv = entry["kindVersion"]
+            _logger.info(f"\tEntry type: {kv['kind']} {kv['version']}")
+
+        # Timestamps
+        _logger.info(f"Timestamps ({len(verification_material.timestamps)}):")
+        for data in verification_material.timestamps:
+            ts = decode_timestamp_response(base64.b64decode(data))
+            _logger.info(f"\tTime: {ts.tst_info.gen_time}")
 
 
 def _verify_attestation(args: argparse.Namespace) -> None:
