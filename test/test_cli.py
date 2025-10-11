@@ -273,10 +273,7 @@ def test_verify_attestation_command(caplog: pytest.LogCaptureFixture) -> None:
                 artifact_path.as_posix(),
             ]
         )
-    assert (
-        "Verification failed: failed to build timestamp certificate chain"
-        in caplog.text
-    )
+    assert "Verification failed: failed to build timestamp certificate chain" in caplog.text
     assert "OK:" not in caplog.text
 
 
@@ -495,10 +492,7 @@ def test_verify_pypi_command_env_fail(caplog: pytest.LogCaptureFixture) -> None:
                 pypi_wheel_url,
             ]
         )
-    assert (
-        "Verification failed: failed to build timestamp certificate chain"
-        in caplog.text
-    )
+    assert "Verification failed: failed to build timestamp certificate chain" in caplog.text
     assert "OK:" not in caplog.text
 
 
