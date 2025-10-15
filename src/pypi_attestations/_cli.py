@@ -463,7 +463,7 @@ def _inspect(args: argparse.Namespace) -> None:
 
     Warning: The information displayed from the attestations are not verified.
     """
-    attestation_files = [f for f in args.files if f.suffix == ".attestation"]
+    attestation_files = args.files
     _validate_files(attestation_files, should_exist=True)
     for file_path in attestation_files:
         try:
