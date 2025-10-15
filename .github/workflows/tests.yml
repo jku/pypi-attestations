@@ -63,4 +63,11 @@ jobs:
       - name: run tests offline
         run: |
           make dev INSTALL_EXTRA=test
+
+          # ensure trust root is updated
+          . ./.venv/bin/activate && \
+            python -m sigstore plumbing update-trust-root && \
+            python -m sigstore --staging plumbing update-trust-root
+
+          # run offline tests without network access
           firejail --noprofile --net=none --env=TEST_OFFLINE=1 make test-nocoverage
