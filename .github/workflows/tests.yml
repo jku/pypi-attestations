@@ -65,6 +65,8 @@ jobs:
           make dev INSTALL_EXTRA=test
 
           # ensure trust root is updated
+          pwd
+          ls -ltra
           . ./.venv/bin/activate && \
             python -m sigstore plumbing update-trust-root && \
             python -m sigstore --staging plumbing update-trust-root
